@@ -1,0 +1,32 @@
+{
+  "resultType": "SUCCESS",
+  "success": {
+    "items": [
+      {
+        "tacaItemId": 100201,
+        "tacaId": 1002,
+        "displayName": "노아 저소음 탁상 서큘레이터 20dB 7단 풍량",
+        "thumbnailUrl": "https://static.example-cdn.test/fixtures/1002/thumb.jpg",
+        "mainImageUrls": [
+          "https://static.example-cdn.test/fixtures/1002/main-1.jpg"
+        ],
+        "productUrl": "https://shopping.example-toss.test/product/1002",
+        "displayPrice": 54900,
+        "originalPrice": 69000,
+        "discountRate": 20,
+        "isSoldOut": false,
+        "reviewScore": 4.3,
+        "reviewCount": 517,
+        "categoryIds": [300, 3021, 302108],
+        "description": {
+          "detailImageUrls": [
+            "https://static.example-cdn.test/fixtures/1002/detail-1.jpg"
+          ],
+          "noticeImageUrl": "https://static.example-cdn.test/fixtures/1002/notice.jpg",
+          "htmlUrl": "https://static.example-cdn.test/fixtures/1002/detail.html"
+        }
+      }
+    ],
+    "notFoundIds": []
+  }
+}

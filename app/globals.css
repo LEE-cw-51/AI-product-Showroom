@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * 주제: 좁은 주방·싱크대 위에서 물이 빠지는 물건들.
+ * 팔레트는 젖은 스테인리스와 타일에서 가져왔다 — 차가운 녹회색 계열에
+ * 젖은 청록 하나만 강조색으로 쓴다. 크림색·세리프·테라코타 조합은 피한다.
+ */
+:root {
+  --paper: #f2f4f1; /* 타일 흰색. 크림이 아니라 초록기 도는 회백 */
+  --ink: #17211f; /* 젖은 슬레이트 */
+  --steel: #64716f; /* 스테인리스 중간톤 — 보조 텍스트 */
+  --rule: #ccd3d0; /* 실선 1px */
+  --water: #0f6b74; /* 강조색. 링크와 CTA에만 */
+  --caution: #7a4b12; /* 품절 등 상태 표기에만 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #121917;
+    --ink: #e6ebe8;
+    --steel: #98a5a2;
+    --rule: #2b3634;
+    --water: #63c6ce;
+    --caution: #d2a45f;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-steel: var(--steel);
+  --color-rule: var(--rule);
+  --color-water: var(--water);
+  --color-caution: var(--caution);
+  --font-sans: var(--font-plex-kr);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex-kr), system-ui, sans-serif;
+  /* 숫자는 표에서 자리를 맞춘다 */
+  font-variant-numeric: tabular-nums;
+  /* 한글은 어절 단위로 끊는다. 기본값은 단어 중간에서 줄을 바꿔버린다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 키보드 초점은 항상 보이게 둔다 */
+:focus-visible {
+  outline: 2px solid var(--water);
+  outline-offset: 2px;
+}
