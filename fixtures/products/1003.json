@@ -1,0 +1,31 @@
+{
+  "resultType": "SUCCESS",
+  "success": {
+    "items": [
+      {
+        "tacaItemId": 100301,
+        "tacaId": 1003,
+        "displayName": "메이크데스크 알루미늄 노트북 거치대 6단 각도조절 (13~16인치)",
+        "thumbnailUrl": "https://static.example-cdn.test/fixtures/1003/thumb.jpg",
+        "mainImageUrls": [
+          "https://static.example-cdn.test/fixtures/1003/main-1.jpg",
+          "https://static.example-cdn.test/fixtures/1003/main-2.jpg"
+        ],
+        "productUrl": "https://shopping.example-toss.test/product/1003",
+        "displayPrice": 19900,
+        "originalPrice": 26000,
+        "discountRate": 23,
+        "isSoldOut": true,
+        "reviewScore": 4.8,
+        "reviewCount": 4210,
+        "categoryIds": [300, 3045, 304502],
+        "description": {
+          "detailImageUrls": [],
+          "noticeImageUrl": null,
+          "htmlUrl": null
+        }
+      }
+    ],
+    "notFoundIds": []
+  }
+}
