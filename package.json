@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "validate:content": "node scripts/validate-content.mts"
+    "validate:content": "node scripts/validate-content.mts",
+    "test:qa": "node --test lib/ai/qa.test.mts",
+    "pipeline": "node --import ./scripts/resolve-alias.mjs scripts/pipeline.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.59",
