@@ -1,24 +1,20 @@
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
-
 import {
   showroomContentSchema,
   type ShowroomContent,
 } from "@/lib/ai/schemas/showroom";
-import { getFixtureProduct } from "@/lib/partners/fixtures";
+import { getSql } from "@/lib/db/client";
+import { productFromDb, type DbProduct } from "@/lib/db/products";
 import type { ProductRow } from "@/lib/partners/toss/types";
 
 /**
- * 쇼룸 데이터 접근의 단일 창구.
- *
- * M1 은 content/showrooms/*.json (수기 작성) + fixtures/products (목업 상품)를 읽는다.
- * M2 에서 showroom_versions 테이블로 옮길 때 이 파일의 구현만 바꾸면 되고,
- * 페이지·sitemap 은 손대지 않는다.
+ * 공개 쇼룸 데이터 접근의 단일 창구. 발행된(published) 쇼룸의 현재 버전만 읽는다.
+ * 페이지·sitemap 은 이 파일의 함수만 쓴다.
  */
 
-const CONTENT_DIR = path.join(process.cwd(), "content", "showrooms");
-
 export type Showroom = {
+  id: string;
+  /** 지금 공개 중인 버전. 이벤트를 버전별로 나눠 수정 전후를 비교한다. */
+  versionId: string;
   slug: string;
   content: ShowroomContent;
   product: ProductRow;
@@ -28,46 +24,35 @@ export type Showroom = {
   isSoldOut: boolean;
 };
 
-type ShowroomFile = {
-  /** 이 쇼룸이 다루는 상품 옵션 ID. */
-  taca_item_id: number;
+type ShowroomRow = {
+  showroom_id: string;
+  version_id: string;
+  slug: string;
   content: unknown;
+  product: DbProduct;
 };
 
-async function readShowroomFile(slug: string): Promise<ShowroomFile | null> {
-  try {
-    const raw = await readFile(path.join(CONTENT_DIR, `${slug}.json`), "utf8");
-    return JSON.parse(raw) as ShowroomFile;
-  } catch {
-    return null;
-  }
-}
+const SELECT_PUBLISHED = `
+  select s.id as showroom_id, v.id as version_id, s.slug, v.content,
+         to_jsonb(p) as product
+    from showrooms s
+    join showroom_versions v on v.id = s.current_version_id
+    join products p on p.id = s.product_id
+   where s.status = 'published'
+`;
 
-export async function listShowroomSlugs(): Promise<string[]> {
-  const files = await readdir(CONTENT_DIR);
-  return files
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => f.replace(/\.json$/, ""));
-}
-
-export async function getShowroom(slug: string): Promise<Showroom | null> {
-  const file = await readShowroomFile(slug);
-  if (!file) return null;
-
-  const content = showroomContentSchema.parse(file.content);
-  if (content.seo.slug !== slug) {
+function toShowroom(row: ShowroomRow): Showroom {
+  const content = showroomContentSchema.parse(row.content);
+  if (content.seo.slug !== row.slug) {
     throw new Error(
-      `slug 불일치: 파일은 ${slug}.json, seo.slug 는 ${content.seo.slug}`,
+      `slug 불일치: 쇼룸은 ${row.slug}, 현재 버전 seo.slug 는 ${content.seo.slug}`,
     );
   }
-
-  const product = await getFixtureProduct(file.taca_item_id);
-  if (!product) {
-    throw new Error(`상품을 찾을 수 없습니다: ${file.taca_item_id}`);
-  }
-
+  const product = productFromDb(row.product);
   return {
-    slug,
+    id: row.showroom_id,
+    versionId: row.version_id,
+    slug: row.slug,
     content,
     product,
     ctaUrl: product.tracking_url ?? product.product_url,
@@ -75,8 +60,40 @@ export async function getShowroom(slug: string): Promise<Showroom | null> {
   };
 }
 
+export async function listShowroomSlugs(): Promise<string[]> {
+  const sql = getSql();
+  const rows = (await sql`
+    select slug from showrooms where status = 'published' order by slug
+  `) as { slug: string }[];
+  return rows.map((r) => r.slug);
+}
+
+export async function getShowroom(slug: string): Promise<Showroom | null> {
+  const sql = getSql();
+  const rows = (await sql.query(`${SELECT_PUBLISHED} and s.slug = $1`, [
+    slug,
+  ])) as ShowroomRow[];
+  return rows[0] ? toShowroom(rows[0]) : null;
+}
+
 export async function listShowrooms(): Promise<Showroom[]> {
-  const slugs = await listShowroomSlugs();
-  const showrooms = await Promise.all(slugs.map((slug) => getShowroom(slug)));
-  return showrooms.filter((s): s is Showroom => s !== null);
+  const sql = getSql();
+  const rows = (await sql.query(
+    `${SELECT_PUBLISHED} order by s.slug`,
+  )) as ShowroomRow[];
+  return rows.map(toShowroom);
+}
+
+/** 이벤트 수집용 가벼운 조회. 본문을 파싱하지 않는다. */
+export async function findPublishedShowroomRef(
+  slug: string,
+): Promise<{ id: string; versionId: string | null } | null> {
+  const sql = getSql();
+  const rows = (await sql`
+    select id, current_version_id from showrooms
+    where slug = ${slug} and status = 'published'
+  `) as { id: string; current_version_id: string | null }[];
+  return rows[0]
+    ? { id: rows[0].id, versionId: rows[0].current_version_id }
+    : null;
 }

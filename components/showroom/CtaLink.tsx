@@ -4,6 +4,7 @@ import { CTA_LABEL } from "@/lib/site";
  * 본문 흐름 안에만 놓이는 CTA. position: fixed / sticky 를 쓰지 않는다 —
  * 본문을 가리는 플로팅 배너와 진입 시 앱 자동 실행은 토스 운영 정책이 금지한다.
  * 품절이면 링크가 아니라 상태 표시로 바뀐다.
+ * 클릭 수집은 ShowroomTracker 가 data-track="cta" 를 위임으로 잡는다.
  */
 export function CtaLink({
   href,
@@ -27,6 +28,7 @@ export function CtaLink({
       href={href}
       rel="nofollow sponsored noopener"
       target="_blank"
+      data-track="cta"
       className="inline-block bg-water px-5 py-3 font-medium text-paper hover:bg-ink"
     >
       {label ?? CTA_LABEL}

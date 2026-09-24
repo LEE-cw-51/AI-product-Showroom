@@ -9,12 +9,14 @@
     "lint": "eslint",
     "validate:content": "node scripts/validate-content.mts",
     "test:qa": "node --test lib/ai/qa.test.mts",
-    "pipeline": "node --import ./scripts/resolve-alias.mjs scripts/pipeline.mts"
+    "pipeline": "node --env-file-if-exists=.env.local --import ./scripts/resolve-alias.mjs scripts/pipeline.mts",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mts",
+    "db:seed": "node --env-file-if-exists=.env.local --import ./scripts/resolve-alias.mjs scripts/seed-db.mts",
+    "test": "node --test lib/ai/qa.test.mts lib/events/referrer.test.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.59",
-    "@supabase/ssr": "^0.12.7",
-    "@supabase/supabase-js": "^2.116.0",
+    "@neondatabase/serverless": "1.1.0",
     "ai": "^7.0.109",
     "next": "16.3.5",
     "react": "19.2.8",

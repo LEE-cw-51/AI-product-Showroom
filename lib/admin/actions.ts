@@ -49,7 +49,9 @@ export async function approveDraftAction(formData: FormData): Promise<void> {
   if (!Number.isInteger(id) || id <= 0) {
     throw new Error("잘못된 초안 ID");
   }
-  await approveDraft(id);
+  const { slug } = await approveDraft(id);
+  revalidatePath(`/showroom/${slug}`);
+  revalidatePath("/sitemap.xml");
   revalidatePath("/admin/review");
   revalidatePath(`/admin/review/${id}`);
   redirect(`/admin/review/${id}`);

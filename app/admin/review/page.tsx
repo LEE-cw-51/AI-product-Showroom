@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** 파일 기반이라 요청마다 디스크를 읽는다. */
+/** 검수 큐는 요청마다 DB 를 읽는다. */
 export const dynamic = "force-dynamic";
 
 export default async function AdminReviewListPage() {

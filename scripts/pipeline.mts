@@ -1,9 +1,10 @@
 /**
- * 픽스처 상품 한 건을 analyze → generate → QA 한 뒤 content/drafts 에 쓴다.
+ * 픽스처 상품 한 건을 analyze → generate → QA 한 뒤 DB 에 초안(새 버전)으로 쌓는다.
  *
  *   npm run pipeline -- <tacaItemId>
  *
- * ANTHROPIC_API_KEY 가 없으면 생성 모듈을 불러오기 전에 종료한다.
+ * ANTHROPIC_API_KEY·DATABASE_URL 이 없으면 생성 모듈을 불러오기 전에 종료한다.
+ * .env.local 은 npm 스크립트의 --env-file-if-exists 로 읽는다.
  * 경로 별칭은 resolve-alias 로더가 처리한다.
  */
 
@@ -28,9 +29,14 @@ if (!process.env.ANTHROPIC_API_KEY?.trim()) {
   process.exit(1);
 }
 
+if (!process.env.DATABASE_URL?.trim()) {
+  console.error("DATABASE_URL 이 없습니다. .env.local 에 Neon 연결 문자열을 넣으세요.");
+  process.exit(1);
+}
+
 const { generateShowroom } = await import("../lib/ai/generate.ts");
 const { runShowroomQa } = await import("../lib/ai/qa.ts");
-const { writeDraft } = await import("../lib/pipeline/drafts.ts");
+const { listTakenSlugs, writeDraft } = await import("../lib/pipeline/drafts.ts");
 const { getFixtureProduct } = await import("../lib/partners/fixtures.ts");
 
 const product = await getFixtureProduct(tacaItemId);
@@ -47,6 +53,7 @@ const qa_result = runShowroomQa({
   content,
   product,
   categoryLabel: analysis.category_label,
+  existingSlugs: await listTakenSlugs(tacaItemId),
 });
 
 const draft = {
@@ -58,9 +65,9 @@ const draft = {
   status: qa_result.status,
 };
 
-const file = await writeDraft(draft);
+const { version } = await writeDraft(draft, product);
 
-console.log(`초안 저장: ${file}`);
+console.log(`초안 저장: ${tacaItemId} v${version}`);
 console.log(`status: ${draft.status}`);
 if (!qa_result.passed) {
   console.log("QA 실패:");

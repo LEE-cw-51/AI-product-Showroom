@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { DraftControls } from "@/components/admin/DraftControls";
 import { DraftShowroomPreview } from "@/components/admin/DraftShowroomPreview";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { getFixtureProduct } from "@/lib/partners/fixtures";
+import { getProductByTacaItemId } from "@/lib/db/products";
 import { readDraft } from "@/lib/pipeline/drafts";
 
 export const metadata: Metadata = {
@@ -30,9 +30,9 @@ export default async function AdminReviewDetailPage({ params }: PageProps) {
   const draft = await readDraft(tacaItemId);
   if (!draft) notFound();
 
-  const product = await getFixtureProduct(tacaItemId);
+  const product = await getProductByTacaItemId(tacaItemId);
   if (!product) {
-    throw new Error(`픽스처 상품을 찾을 수 없습니다: ${tacaItemId}`);
+    throw new Error(`상품을 찾을 수 없습니다: ${tacaItemId}`);
   }
 
   return (

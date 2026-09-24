@@ -10,6 +10,7 @@ import {
   Problem,
   Summary,
 } from "@/components/showroom";
+import { ShowroomTracker } from "@/components/showroom/ShowroomTracker";
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -21,8 +22,11 @@ import { getShowroom, listShowroomSlugs } from "@/lib/db/showrooms";
 
 /** 발행 후 하루 한 번 재생성. 가격·품절 갱신은 7단계가 별도로 트리거한다. */
 export const revalidate = 86400;
-/** 목록에 없는 slug 는 404. 쇼룸은 발행된 것만 존재한다. */
-export const dynamicParams = false;
+/**
+ * 빌드 뒤에 승인된 쇼룸도 첫 요청에서 생성되도록 true 로 둔다.
+ * 발행되지 않은 slug 는 getShowroom 이 null 을 돌려 404 가 된다.
+ */
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const slugs = await listShowroomSlugs();
@@ -50,6 +54,7 @@ export default async function ShowroomPage({
 
   return (
     <main className="mx-auto w-full max-w-[42rem] px-4 pt-10 pb-16">
+      <ShowroomTracker slug={showroom.slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

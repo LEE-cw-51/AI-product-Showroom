@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync } from "node:fs";
-import path from "node:path";
-
 import { showroomContentSchema } from "./schemas/showroom.ts";
 import type { ProductRow } from "../partners/toss/types.ts";
 
@@ -8,8 +5,6 @@ import type { ProductRow } from "../partners/toss/types.ts";
  * 결정적 쇼룸 QA. 모델 호출 없이 실패 코드만 모은다.
  * 통과 → 초안 status `review`, 실패 → `failed`.
  */
-
-const SHOWROOMS_DIR = path.join(process.cwd(), "content", "showrooms");
 
 /** 상품명·카테고리 라벨 부분 일치. 공식 카테고리 ID 표는 아직 없다. */
 export const RESTRICTED_CATEGORY_LABELS = [
@@ -51,11 +46,10 @@ export type RunShowroomQaInput = {
   /** 분석 단계의 추정 카테고리 라벨. 공식 ID 대신 이름 매칭에 쓴다. */
   categoryLabel?: string;
   /**
-   * 이미 발행된 쇼룸 slug 목록.
-   * 생략하면 `content/showrooms` 를 읽어 채운다.
-   * 자기 자신을 재검증할 때는 호출측에서 제외해 넘긴다.
+   * 다른 상품의 쇼룸이 이미 쓰는 slug 목록 (`listTakenSlugs`).
+   * 자기 상품의 slug 는 재생성해도 같은 URL 이므로 호출측에서 뺀다.
    */
-  existingSlugs?: string[];
+  existingSlugs: string[];
 };
 
 function collectStrings(value: unknown, out: string[] = []): string[] {
@@ -71,33 +65,6 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
     for (const child of Object.values(value)) collectStrings(child, out);
   }
   return out;
-}
-
-/** 발행 쇼룸 JSON의 seo.slug (없으면 파일명)를 모은다. */
-export function loadPublishedShowroomSlugs(
-  dir: string = SHOWROOMS_DIR,
-): string[] {
-  let files: string[];
-  try {
-    files = readdirSync(dir).filter((f) => f.endsWith(".json"));
-  } catch {
-    return [];
-  }
-
-  const slugs: string[] = [];
-  for (const file of files) {
-    const fallback = file.replace(/\.json$/, "");
-    try {
-      const raw = JSON.parse(readFileSync(path.join(dir, file), "utf8")) as {
-        content?: { seo?: { slug?: string } };
-      };
-      const slug = raw.content?.seo?.slug;
-      slugs.push(typeof slug === "string" && slug.length > 0 ? slug : fallback);
-    } catch {
-      slugs.push(fallback);
-    }
-  }
-  return slugs;
 }
 
 function checkForbiddenNumerics(
@@ -190,11 +157,7 @@ function checkSlugCollision(
 }
 
 export function runShowroomQa(input: RunShowroomQaInput): ShowroomQaResult {
-  const { content, product, categoryLabel } = input;
-  const existingSlugs =
-    input.existingSlugs !== undefined
-      ? input.existingSlugs
-      : loadPublishedShowroomSlugs();
+  const { content, product, categoryLabel, existingSlugs } = input;
 
   const failures: ShowroomQaFailure[] = [];
 
