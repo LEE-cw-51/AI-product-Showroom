@@ -115,6 +115,11 @@
     "cta": {
       "label": "토스쇼핑에서 상품 확인하기"
     },
+    "visual": {
+      "preset": "stack",
+      "palette": "water",
+      "hero_image_url": "https://static.example-cdn.test/fixtures/1001/main-1.jpg"
+    },
     "meta": {
       "facts_as_of": "2026-09-22",
       "prompt_version": "manual-v1"
