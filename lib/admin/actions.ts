@@ -51,6 +51,7 @@ export async function approveDraftAction(formData: FormData): Promise<void> {
   }
   const { slug } = await approveDraft(id);
   revalidatePath(`/showroom/${slug}`);
+  revalidatePath("/");
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin/review");
   revalidatePath(`/admin/review/${id}`);

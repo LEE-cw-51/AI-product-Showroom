@@ -1,5 +1,5 @@
 import { showroomContentSchema } from "./schemas/showroom.ts";
-import type { ProductRow } from "../partners/toss/types.ts";
+import { productImageUrls, type ProductRow } from "../partners/toss/types.ts";
 
 /**
  * 결정적 쇼룸 QA. 모델 호출 없이 실패 코드만 모은다.
@@ -23,7 +23,8 @@ export type ShowroomQaFailureCode =
   | "forbidden_numeric"
   | "won_amount"
   | "restricted_category"
-  | "slug_collision";
+  | "slug_collision"
+  | "visual_image";
 
 export type ShowroomQaFailure = {
   code: ShowroomQaFailureCode;
@@ -156,6 +157,25 @@ function checkSlugCollision(
   return [];
 }
 
+/** visual.hero_image_url 이 실제 상품 이미지 중 하나인지. 모델이 URL 을 지어내면 잡는다. */
+function checkVisualImage(
+  content: unknown,
+  product: ProductRow,
+): ShowroomQaFailure[] {
+  const parsed = showroomContentSchema.safeParse(content);
+  if (!parsed.success) return [];
+  const heroUrl = parsed.data.visual.hero_image_url;
+  if (heroUrl && !productImageUrls(product.raw).includes(heroUrl)) {
+    return [
+      {
+        code: "visual_image",
+        message: `visual.hero_image_url 이(가) 상품 이미지 목록에 없다: ${heroUrl}`,
+      },
+    ];
+  }
+  return [];
+}
+
 export function runShowroomQa(input: RunShowroomQaInput): ShowroomQaResult {
   const { content, product, categoryLabel, existingSlugs } = input;
 
@@ -178,6 +198,7 @@ export function runShowroomQa(input: RunShowroomQaInput): ShowroomQaResult {
   failures.push(...checkWonAmounts(strings));
   failures.push(...checkRestrictedCategory(product, categoryLabel));
   failures.push(...checkSlugCollision(content, existingSlugs));
+  failures.push(...checkVisualImage(content, product));
 
   const passed = failures.length === 0;
   return {

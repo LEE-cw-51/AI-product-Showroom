@@ -8,8 +8,10 @@ import {
   Problem,
   Summary,
 } from "@/components/showroom";
+import { ShowroomStage } from "@/components/showroom/scene/ShowroomStage";
 import type { ShowroomContent } from "@/lib/ai/schemas/showroom";
-import type { ProductRow } from "@/lib/partners/toss/types";
+import type { StoredProduct } from "@/lib/partners/toss/types";
+import { sceneImages } from "@/lib/showroom/images";
 
 /**
  * 공개 쇼룸과 같은 블록 순서. 검수 미리보기 전용으로 JSON-LD·메타는 뺀다.
@@ -19,12 +21,19 @@ export function DraftShowroomPreview({
   product,
 }: {
   content: ShowroomContent;
-  product: ProductRow;
+  product: StoredProduct;
 }) {
   const ctaUrl = product.tracking_url ?? product.product_url;
 
   return (
     <div className="mx-auto w-full max-w-[42rem]">
+      <div className="mb-8">
+        <ShowroomStage
+          visual={content.visual}
+          images={sceneImages(product.image_urls, content.visual.hero_image_url, 3)}
+          alt={product.name}
+        />
+      </div>
       <header className="mb-8">
         <h1 className="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">
           {content.seo.h1}

@@ -45,7 +45,10 @@ export type TossProductDetailResponse = z.infer<
   typeof tossProductDetailResponseSchema
 >;
 
-/** products 테이블에 그대로 들어가는 형태. */
+/**
+ * API 에서 받은 상품. 가격이 들어 있으므로 파이프라인 메모리(생성·QA)에서만 쓰고
+ * 저장할 때는 toStoredProduct 로 가격을 뺀다.
+ */
 export type ProductRow = {
   taca_id: number;
   taca_item_id: number;
@@ -85,5 +88,43 @@ export function mapTossItemToProduct(item: TossProductItem): ProductRow {
     product_url: item.productUrl,
     tracking_url: null,
     raw: item,
+  };
+}
+
+/**
+ * products 테이블에 들어가는 형태. 가격·할인율·API 원본을 담지 않는다.
+ * 토스 Open API 승인 기준에서 "가격을 DB 에 저장하는 커머스형 사이트"는 반려 사유다.
+ */
+export type StoredProduct = Omit<
+  ProductRow,
+  "display_price" | "original_price" | "discount_rate" | "raw"
+> & {
+  /** 썸네일 → 메인 → 상세 순서, 중복 제거. 쇼룸 3D 씬과 대표 이미지에 쓴다. */
+  image_urls: string[];
+};
+
+export function productImageUrls(item: TossProductItem): string[] {
+  return [
+    ...new Set([
+      item.thumbnailUrl,
+      ...item.mainImageUrls,
+      ...item.description.detailImageUrls,
+    ]),
+  ];
+}
+
+export function toStoredProduct(product: ProductRow): StoredProduct {
+  return {
+    taca_id: product.taca_id,
+    taca_item_id: product.taca_item_id,
+    name: product.name,
+    review_score: product.review_score,
+    review_count: product.review_count,
+    category_ids: product.category_ids,
+    detail_html_url: product.detail_html_url,
+    is_sold_out: product.is_sold_out,
+    product_url: product.product_url,
+    tracking_url: product.tracking_url,
+    image_urls: productImageUrls(product.raw),
   };
 }

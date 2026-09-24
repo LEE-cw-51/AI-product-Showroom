@@ -145,6 +145,25 @@ describe("runShowroomQa", () => {
     assert.ok(result.failures.some((f) => f.code === "slug_collision"));
   });
 
+  it("visual.hero_image_url 이 상품 이미지가 아니면 실패한다", async () => {
+    const { content, product } = await loadGolden();
+    const broken = cloneContent(content);
+    broken.visual = {
+      preset: "float",
+      palette: "tile",
+      hero_image_url: "https://static.example-cdn.test/fixtures/9999/made-up.jpg",
+    };
+
+    const result = runShowroomQa({
+      content: broken,
+      product,
+      existingSlugs: [],
+    });
+
+    assert.equal(result.passed, false);
+    assert.ok(result.failures.some((f) => f.code === "visual_image"));
+  });
+
   it("스키마를 깨면 schema_parse 로 실패한다", async () => {
     const { product } = await loadGolden();
 

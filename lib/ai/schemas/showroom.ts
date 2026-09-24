@@ -90,6 +90,36 @@ export const metaSchema = z.object({
   prompt_version: trimmed(40),
 });
 
+/**
+ * 첫 화면 3D 씬. 상품 사진을 WebGL 씬에 올리는 연출이라 3D 모델은 없다.
+ * - float: 사진 카드 한 장이 떠서 포인터를 따라 기운다. 한 장으로 충분한 상품.
+ * - stack: 사진 여러 장이 겹쳐 있다가 부채꼴로 펼쳐진다. 구성품·각도가 여럿인 상품.
+ * - stage: 받침대 위 사진 카드를 카메라가 돌며 조명이 쓸고 간다. 형태가 중요한 상품.
+ */
+export const SCENE_PRESETS = ["float", "stack", "stage"] as const;
+
+/** 사이트 팔레트 안에서만 고른다. 색 값은 components/showroom/scene/palettes.ts. */
+export const SCENE_PALETTES = ["tile", "steel", "water", "moss", "slate"] as const;
+
+export const visualSchema = z.object({
+  preset: z.enum(SCENE_PRESETS),
+  palette: z.enum(SCENE_PALETTES),
+  /**
+   * 대표로 쓸 상품 이미지 URL (image_urls 중 하나). 인덱스가 아니라 URL 로 둔다 —
+   * 판매처가 사진 순서를 바꿔도 발행된 쇼룸의 대표 사진이 바뀌지 않게.
+   * 없거나 현재 목록에서 사라졌으면 첫 이미지를 쓴다.
+   */
+  hero_image_url: z.string().url().optional(),
+});
+
+export type ShowroomVisual = z.infer<typeof visualSchema>;
+
+/** visual 이 생기기 전 버전은 이 값으로 렌더한다. */
+export const DEFAULT_VISUAL: ShowroomVisual = {
+  preset: "float",
+  palette: "tile",
+};
+
 export const showroomContentSchema = z.object({
   seo: seoSchema,
   summary: summarySchema,
@@ -101,6 +131,7 @@ export const showroomContentSchema = z.object({
   checklist: z.array(trimmed(160)).max(6).default([]),
   faq: z.array(faqItemSchema).max(8).default([]),
   cta: ctaSchema,
+  visual: visualSchema.default(DEFAULT_VISUAL),
   meta: metaSchema,
 });
 

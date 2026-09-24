@@ -13,6 +13,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
+    {
+      url: absoluteUrl("/about"),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
     ...showrooms.map((showroom) => ({
       url: absoluteUrl(showroomPath(showroom.slug)),
       lastModified: new Date(showroom.content.meta.facts_as_of),

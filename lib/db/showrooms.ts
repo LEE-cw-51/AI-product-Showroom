@@ -4,7 +4,7 @@ import {
 } from "@/lib/ai/schemas/showroom";
 import { getSql } from "@/lib/db/client";
 import { productFromDb, type DbProduct } from "@/lib/db/products";
-import type { ProductRow } from "@/lib/partners/toss/types";
+import type { StoredProduct } from "@/lib/partners/toss/types";
 
 /**
  * 공개 쇼룸 데이터 접근의 단일 창구. 발행된(published) 쇼룸의 현재 버전만 읽는다.
@@ -17,7 +17,7 @@ export type Showroom = {
   versionId: string;
   slug: string;
   content: ShowroomContent;
-  product: ProductRow;
+  product: StoredProduct;
   /** CTA 목적지. 추적 링크가 없으면 원본 상품 URL. */
   ctaUrl: string;
   /** 품절이면 CTA 를 비활성화한다. */

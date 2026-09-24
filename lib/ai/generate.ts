@@ -9,11 +9,14 @@ import {
   showroomContentSchema,
   type ShowroomContent,
 } from "@/lib/ai/schemas/showroom";
-import type { ProductRow } from "@/lib/partners/toss/types";
+import {
+  productImageUrls,
+  type ProductRow,
+} from "@/lib/partners/toss/types";
 import { PRICE_NOTE } from "@/lib/site";
 
 /** 쇼룸 생성 프롬프트 버전. 초안·발행 meta·QA 추적용. */
-export const PROMPT_VERSION = "showroom-v1" as const;
+export const PROMPT_VERSION = "showroom-v2" as const;
 
 const model = anthropic("claude-sonnet-5");
 
@@ -27,18 +30,12 @@ type PromptProduct = {
 };
 
 function toPromptProduct(product: ProductRow): PromptProduct {
-  const image_urls = [
-    product.raw.thumbnailUrl,
-    ...product.raw.mainImageUrls,
-    ...product.raw.description.detailImageUrls,
-  ];
-
   return {
     name: product.name,
     category_ids: [...product.category_ids],
     is_sold_out: product.is_sold_out,
     detail_url: product.product_url,
-    image_urls: [...new Set(image_urls)],
+    image_urls: productImageUrls(product.raw),
   };
 }
 
@@ -94,6 +91,10 @@ ${SHARED_RULES}
 - meta.prompt_version 은 반드시 "${PROMPT_VERSION}" 이다.
 - meta.facts_as_of 는 YYYY-MM-DD 형식의 오늘 날짜다.
 - seo.slug 는 문제·용도 중심의 영문 소문자 하이픈이다.
+- visual 은 첫 화면 3D 연출이다. 상품 사진을 씬에 올린다.
+  - preset: 사진 한 장으로 충분하면 "float", 구성품·각도 사진이 여럿이면 "stack", 형태·자세가 핵심이면 "stage".
+  - palette: 상품 분위기에 맞게 "tile"(밝은 회녹), "steel"(금속 중성), "water"(청록), "moss"(초록), "slate"(어두운) 중 하나.
+  - hero_image_url: image_urls 중 상품이 가장 잘 보이는 사진의 URL 을 그대로 복사한다. 상세 안내 이미지(글자 위주)는 피한다.
 - FAQ source 가 product_data 또는 spec 이면 답이 제공된 상품 필드·분석 스펙에 근거해야 한다.
 - 한국어로 쓰고 word-break 친화적으로 문장을 끊는다.`,
     prompt: `상품 필드:

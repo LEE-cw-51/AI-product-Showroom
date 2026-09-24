@@ -12,15 +12,17 @@
     "pipeline": "node --env-file-if-exists=.env.local --import ./scripts/resolve-alias.mjs scripts/pipeline.mts",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mts",
     "db:seed": "node --env-file-if-exists=.env.local --import ./scripts/resolve-alias.mjs scripts/seed-db.mts",
-    "test": "node --test lib/ai/qa.test.mts lib/events/referrer.test.mts"
+    "test": "node --test lib/ai/qa.test.mts lib/events/referrer.test.mts lib/db/schema-version.test.mts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.59",
     "@neondatabase/serverless": "1.1.0",
+    "@react-three/fiber": "9.8.0",
     "ai": "^7.0.109",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "three": "0.186.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -29,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "0.186.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "schema-dts": "^2.0.0",
